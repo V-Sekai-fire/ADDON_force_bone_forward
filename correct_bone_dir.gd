@@ -1,17 +1,17 @@
 # MIT License
-# 
+#
 # Copyright (c) 2020 K. S. Ernest (iFire) Lee & V-Sekai
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,13 +20,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-@tool
-extends EditorScenePostImportPlugin
-
 # GDScript implementation of a modified version of the fortune algorthim.
 # Thanks to iFire, Lyuma, and MMMaellon for the C++ implementation this version was based off, saved me
 # a lot of headaches ;)
 # https://github.com/godot-extended-libraries/godot-fire/commit/622022d2779f9d35b586db4ee31c9cb76d0b7bc7
+
+@tool
+extends EditorScenePostImportPlugin
 
 const VECTOR_DIRECTION = Vector3.UP
 
@@ -45,9 +45,9 @@ static func _get_perpendicular_vector(p_v: Vector3) -> Vector3:
 		perpendicular = Vector3(0, 0, 1).cross(p_v).normalized()
 	else:
 		perpendicular = Vector3(1, 0, 0)
-	
+
 	return perpendicular
-	
+
 static func _align_vectors(a: Vector3, b: Vector3) -> Quaternion:
 	a = a.normalized()
 	b = b.normalized()
@@ -72,8 +72,8 @@ static func _fortune_with_chains(
 	p_ignore_chain_tips: Array,
 	p_base_pose: Array) -> Dictionary:
 	var bone_count: int = p_skeleton.get_bone_count()
-	
-	# First iterate through all the bones and create a RestBone for it with an empty centroid 
+
+	# First iterate through all the bones and create a RestBone for it with an empty centroid
 	for j in range(0, bone_count):
 		var rest_bone: RestBone = RestBone.new()
 
@@ -81,7 +81,7 @@ static func _fortune_with_chains(
 		rest_bone.rest_local_before = p_base_pose[j]
 		rest_bone.rest_local_after = rest_bone.rest_local_before
 		r_rest_bones[j] = rest_bone
-	
+
 	# Collect all bone chains into a hash table for optimisation
 	var chain_hash_table: Dictionary = {}.duplicate()
 	for chain in p_fixed_chains:
@@ -93,9 +93,9 @@ static func _fortune_with_chains(
 	for i in range(0, bone_count):
 		var parent_bone: int = p_skeleton.get_bone_parent(i)
 		if (parent_bone >= 0):
-			
+
 			var apply_centroid = true
-			
+
 			var chain = chain_hash_table.get(parent_bone, null)
 			if typeof(chain) == TYPE_PACKED_INT32_ARRAY:
 				var index: int = -1
@@ -120,11 +120,11 @@ static func _fortune_with_chains(
 				if p_ignore_unchained_bones:
 					r_rest_bones[parent_bone].override_direction = false
 					apply_centroid = false
-					
+
 			if apply_centroid:
 				r_rest_bones[parent_bone].children_centroid_direction = r_rest_bones[parent_bone].children_centroid_direction + p_skeleton.get_bone_rest(i).origin
 			r_rest_bones[parent_bone].children.append(i)
-			
+
 
 	# Point leaf bones to parent
 	for i in range(0, bone_count):
@@ -145,17 +145,17 @@ static func _fortune_with_chains(
 			for j in range(0, r_rest_bones[i].children.size()):
 				var child_index: int = r_rest_bones[i].children[j]
 				r_rest_bones[child_index].rest_local_after = Transform3D(r_rest_bones[i].rest_delta.inverse(), Vector3()) * r_rest_bones[child_index].rest_local_after
-	
+
 	return r_rest_bones
 
 static func _fix_meshes(p_bind_fix_array: Array, p_mesh_instances: Array) -> void:
 	print("bone_direction: _fix_meshes")
-	
+
 	for mi in p_mesh_instances:
 		var skin: Skin = mi.get_skin();
 		if skin == null:
 			continue
-			
+
 		skin = skin.duplicate()
 		mi.set_skin(skin)
 		var skeleton_path: NodePath = mi.get_skeleton_path()
@@ -168,7 +168,7 @@ static func _fix_meshes(p_bind_fix_array: Array, p_mesh_instances: Array) -> voi
 				if bind_name.is_empty():
 					continue
 				bone_index = skeleton.find_bone(bind_name)
-				
+
 			if (bone_index == -1):
 				continue
 			skin.set_bind_pose(bind_i, p_bind_fix_array[bone_index] * skin.get_bind_pose(bind_i))
@@ -179,10 +179,10 @@ static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Sk
 		var skeleton: Node = p_node.get_node_or_null(p_node.skeleton)
 		if skeleton == p_skeleton:
 			p_valid_mesh_instances.push_back(p_node)
-			
+
 	for child in p_node.get_children():
 		p_valid_mesh_instances = find_mesh_instances_for_avatar_skeleton(child, p_skeleton, p_valid_mesh_instances)
-	
+
 	return p_valid_mesh_instances
 
 
@@ -238,13 +238,13 @@ static func is_bone_parent_of(p_skeleton: Skeleton3D, p_parent_id: int, p_child_
 		if (p == p_parent_id):
 			return true
 		p = p_skeleton.get_bone_parent(p)
-		
+
 	return false
-	
+
 static func is_bone_parent_of_or_self(p_skeleton: Skeleton3D, p_parent_id: int, p_child_id: int) -> bool:
 	if p_parent_id == p_child_id:
 		return true
-		
+
 	return is_bone_parent_of(p_skeleton, p_parent_id, p_child_id)
 
 
@@ -257,7 +257,7 @@ static func change_bone_rest(p_skeleton: Skeleton3D, bone_idx: int, bone_rest: T
 	p_skeleton.set_bone_rest(bone_idx, Transform3D(
 			Basis(new_rotation) * Basis(Vector3(1,0,0) * old_scale.x, Vector3(0,1,0) * old_scale.y, Vector3(0,0,1) * old_scale.z),
 			bone_rest.origin))
-	
+
 
 static func fast_get_bone_global_pose(skel: Skeleton3D, bone_idx: int) -> Transform3D:
 	var xform2: Transform3D = skel.get_bone_global_pose_override(bone_idx)
@@ -281,22 +281,22 @@ static func fast_get_bone_local_pose(skel: Skeleton3D, bone_idx: int) -> Transfo
 
 static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: Array) -> Dictionary:
 	var rest_bones: Dictionary = _fortune_with_chains(p_skeleton, {}.duplicate(), [], false, [], p_base_pose)
-	
+
 	var offsets: Dictionary = {"base_pose_offsets":[], "bind_pose_offsets":[]}
-	
+
 	for key in rest_bones.keys():
 		offsets["base_pose_offsets"].append(rest_bones[key].rest_local_before.inverse() * rest_bones[key].rest_local_after)
 		offsets["bind_pose_offsets"].append(Transform3D(rest_bones[key].rest_delta.inverse()))
-		
+
 	return offsets
-	
+
 static func fix_skeleton(p_root: Node, p_skeleton: Skeleton3D) -> void:
 	print("bone_direction: fix_skeleton")
-	
+
 	var base_pose: Array = []
 	for i in range(0, p_skeleton.get_bone_count()):
 		base_pose.append(p_skeleton.get_bone_rest(i))
-	
+
 	var offsets: Dictionary = get_fortune_with_chain_offsets(p_skeleton, base_pose)
 	for i in range(0, offsets["base_pose_offsets"].size()):
 		var final_pose: Transform3D = p_skeleton.get_bone_rest(i) * offsets["base_pose_offsets"][i]
@@ -319,6 +319,6 @@ func _post_process(scene: Node) -> void:
 		var child_count : int = node.get_child_count()
 		for i in child_count:
 			queue.push_back(node.get_child(i))
-		queue.pop_front()	
+		queue.pop_front()
 	return scene
-	
+
