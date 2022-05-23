@@ -177,29 +177,6 @@ static func find_nodes_in_group(p_group: String, p_node: Node) -> Array:
 	return valid_nodes
 
 
-static func get_full_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) -> PackedInt32Array:
-	var bone_chain: PackedInt32Array = get_bone_chain(p_skeleton, p_first, p_last)
-	bone_chain.push_back(p_last)
-
-	return bone_chain
-
-static func get_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) -> PackedInt32Array:
-	var bone_chain: Array = []
-
-	if p_first != NO_BONE and p_last != NO_BONE:
-		var current_bone_index: int = p_last
-
-		while 1:
-			current_bone_index = p_skeleton.get_bone_parent(current_bone_index)
-			bone_chain.push_front(current_bone_index)
-			if current_bone_index == p_first:
-				break
-			elif current_bone_index == NO_BONE:
-					return PackedInt32Array()
-
-	return PackedInt32Array(bone_chain)
-
-
 static func change_bone_rest(p_skeleton: Skeleton3D, bone_idx: int, bone_rest: Transform3D):
 	var old_scale: Vector3 = p_skeleton.get_bone_pose_scale(bone_idx)
 	var new_rotation: Quaternion = Quaternion(bone_rest.basis.orthonormalized())
