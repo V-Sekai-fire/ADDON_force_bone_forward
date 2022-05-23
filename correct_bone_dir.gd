@@ -162,11 +162,6 @@ static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Sk
 	return p_valid_mesh_instances
 
 
-static func _refresh_skeleton(p_skeleton : Skeleton3D):
-	p_skeleton.visible = not p_skeleton.visible
-	p_skeleton.visible = not p_skeleton.visible
-
-
 static func find_nodes_in_group(p_group: String, p_node: Node) -> Array:
 	var valid_nodes: Array = Array()
 
@@ -305,7 +300,10 @@ func _post_process(scene: Node) -> void:
 					if (bone_index == NO_BONE):
 						continue
 					skin.set_bind_pose(bind_i, offsets["bind_pose_offsets"][bone_index] * skin.get_bind_pose(bind_i))
-			_refresh_skeleton(node)
+
+			print("Refresh the skeleton.")
+			node.visible = not node.visible
+			node.visible = not node.visible
 		var child_count : int = node.get_child_count()
 		for i in child_count:
 			queue.push_back(node.get_child(i))
