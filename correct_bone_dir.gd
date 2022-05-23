@@ -32,10 +32,10 @@ const NO_BONE = -1
 const VECTOR_DIRECTION = Vector3.UP
 
 class RestBone extends RefCounted:
-	var rest_local_before: Transform3D = Transform3D()
-	var rest_local_after: Transform3D = Transform3D()
-	var rest_delta: Quaternion = Quaternion()
-	var children_centroid_direction: Vector3 = Vector3()
+	var rest_local_before: Transform3D
+	var rest_local_after: Transform3D
+	var rest_delta: Quaternion
+	var children_centroid_direction: Vector3
 	var parent_index: int = NO_BONE
 	var children: Array = []
 	var override_direction: bool = true
