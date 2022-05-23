@@ -5,7 +5,6 @@ extends Node
 # a lot of headaches ;)
 # https://github.com/godot-extended-libraries/godot-fire/commit/622022d2779f9d35b586db4ee31c9cb76d0b7bc7
 
-const avatar_lib_const = preload("avatar_lib.gd")
 const bone_lib = preload("bone_lib.gd")
 
 const VECTOR_DIRECTION = Vector3.UP
@@ -152,29 +151,7 @@ static func _fix_meshes(p_bind_fix_array: Array, p_mesh_instances: Array) -> voi
 			if (bone_index == -1):
 				continue
 			skin.set_bind_pose(bind_i, p_bind_fix_array[bone_index] * skin.get_bind_pose(bind_i))
-			
-static func get_humanoid_chains(p_skeleton: Skeleton3D, p_humanoid_data: HumanoidData) -> Array:
-	var chains: Array = [].duplicate() # <>< <>< ><> RED HERRING <>< <>< <><
-	
-	# Spine
-	chains.append(avatar_lib_const.get_full_spine_chain(p_skeleton, p_humanoid_data))
-	
-	for side in range(\
-	avatar_lib_const.avatar_constants_const.SIDE_LEFT,\
-	avatar_lib_const.avatar_constants_const.SIDE_RIGHT + 1):
-		# Arm
-		chains.append(avatar_lib_const.get_arm_chain(p_skeleton, p_humanoid_data,side))
-		# Leg
-		chains.append(avatar_lib_const.get_leg_chain(p_skeleton, p_humanoid_data, side))
-		
-		# Digits
-		for digit in range(avatar_lib_const.avatar_constants_const.DIGIT_THUMB,
-			avatar_lib_const.avatar_constants_const.DIGIT_LITTLE + 1):
-				chains.append(avatar_lib_const.get_digit_chain(\
-					p_skeleton, p_humanoid_data, side, digit))
-	
-	return chains
-	
+
 static func print_chain_names(p_skeleton: Skeleton3D, p_chains: Array) -> void:
 	var idx: int = 0
 	for chain in p_chains:
@@ -189,12 +166,7 @@ static func print_chain_names(p_skeleton: Skeleton3D, p_chains: Array) -> void:
 static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_humanoid_data: HumanoidData, p_base_pose: Array) -> Dictionary:
 	# Get the 5 bone chains necessary for a valid humanoid rig
 	var humanoid_chains: Array 
-	var rest_bones: Dictionary
-	if p_humanoid_data:
-		humanoid_chains = get_humanoid_chains(p_skeleton, p_humanoid_data)
-		rest_bones = _fortune_with_chains(p_skeleton, {}.duplicate(), humanoid_chains, false, [humanoid_chains[0]], p_base_pose)
-	else:
-		rest_bones = _fortune_with_chains(p_skeleton, {}.duplicate(), [], false, [], p_base_pose)
+	var rest_bones: Dictionary = _fortune_with_chains(p_skeleton, {}.duplicate(), [], false, [], p_base_pose)
 	
 	var offsets: Dictionary = {"base_pose_offsets":[], "bind_pose_offsets":[]}
 	
@@ -203,7 +175,18 @@ static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_humanoid_da
 		offsets["bind_pose_offsets"].append(Transform3D(rest_bones[key].rest_delta.inverse()))
 		
 	return offsets
-
+	
+static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Skeleton3D, p_valid_mesh_instances: Array) -> Array:
+	if p_skeleton and p_node is MeshInstance3D:
+		var skeleton: Node = p_node.get_node_or_null(p_node.skeleton)
+		if skeleton == p_skeleton:
+			p_valid_mesh_instances.push_back(p_node)
+			
+	for child in p_node.get_children():
+		p_valid_mesh_instances = find_mesh_instances_for_avatar_skeleton(child, p_skeleton, p_valid_mesh_instances)
+	
+	return p_valid_mesh_instances
+	
 static func fix_skeleton(p_root: Node, p_skeleton: Skeleton3D, p_humanoid_data: HumanoidData, _skeleton_undo_redo: UndoRedo) -> void:
 	print("bone_direction: fix_skeleton")
 	
@@ -216,5 +199,5 @@ static func fix_skeleton(p_root: Node, p_skeleton: Skeleton3D, p_humanoid_data: 
 		var final_pose: Transform3D = p_skeleton.get_bone_rest(i) * offsets["base_pose_offsets"][i]
 		bone_lib.change_bone_rest(p_skeleton, i, final_pose)
 	# Correct the bind poses
-	var mesh_instances: Array = avatar_lib_const.find_mesh_instances_for_avatar_skeleton(p_root, p_skeleton, [])
+	var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(p_root, p_skeleton, [])
 	_fix_meshes(offsets["bind_pose_offsets"], mesh_instances)
