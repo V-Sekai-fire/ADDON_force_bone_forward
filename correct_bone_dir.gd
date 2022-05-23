@@ -288,21 +288,6 @@ static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: 
 
 	return offsets
 
-static func fix_skeleton(p_root: Node, p_skeleton: Skeleton3D) -> void:
-	print("bone_direction: fix_skeleton")
-
-	var base_pose: Array = []
-	for i in range(0, p_skeleton.get_bone_count()):
-		base_pose.append(p_skeleton.get_bone_rest(i))
-
-	var offsets: Dictionary = get_fortune_with_chain_offsets(p_skeleton, base_pose)
-	for i in range(0, offsets["base_pose_offsets"].size()):
-		var final_pose: Transform3D = p_skeleton.get_bone_rest(i) * offsets["base_pose_offsets"][i]
-		change_bone_rest(p_skeleton, i, final_pose)
-	# Correct the bind poses
-	var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(p_root, p_skeleton, [])
-	_fix_meshes(offsets["bind_pose_offsets"], mesh_instances)
-
 
 func _post_process(scene: Node) -> void:
 	var queue : Array
@@ -312,7 +297,19 @@ func _post_process(scene: Node) -> void:
 		var front = queue.front()
 		var node = front
 		if node is Skeleton3D:
-			fix_skeleton(scene, node)
+			print("bone_direction: fix_skeleton")
+
+			var base_pose: Array = []
+			for i in range(0, node.get_bone_count()):
+				base_pose.append(node.get_bone_rest(i))
+
+			var offsets: Dictionary = get_fortune_with_chain_offsets(node, base_pose)
+			for i in range(0, offsets["base_pose_offsets"].size()):
+				var final_pose: Transform3D = node.get_bone_rest(i) * offsets["base_pose_offsets"][i]
+				change_bone_rest(node, i, final_pose)
+			# Correct the bind poses
+			var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(scene, node, [])
+			_fix_meshes(offsets["bind_pose_offsets"], mesh_instances)
 			_refresh_skeleton(node)
 		var child_count : int = node.get_child_count()
 		for i in child_count:
