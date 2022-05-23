@@ -173,17 +173,6 @@ static func _fix_meshes(p_bind_fix_array: Array, p_mesh_instances: Array) -> voi
 				continue
 			skin.set_bind_pose(bind_i, p_bind_fix_array[bone_index] * skin.get_bind_pose(bind_i))
 
-static func print_chain_names(p_skeleton: Skeleton3D, p_chains: Array) -> void:
-	var idx: int = 0
-	for chain in p_chains:
-		var bone_string: String = ""
-		for bone_id in chain:
-			bone_string += p_skeleton.get_bone_name(bone_id) + ", "
-		
-		print("Chain %s: %s" % [str(idx), bone_string])
-		
-		idx += 1
-
 
 static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Skeleton3D, p_valid_mesh_instances: Array) -> Array:
 	if p_skeleton and p_node is MeshInstance3D:
@@ -317,10 +306,6 @@ static func fix_skeleton(p_root: Node, p_skeleton: Skeleton3D) -> void:
 	_fix_meshes(offsets["bind_pose_offsets"], mesh_instances)
 
 
-static func correct_bone_directions(p_root: Node, p_skeleton_node: Skeleton3D) -> void:
-	fix_skeleton(p_root, p_skeleton_node)
-
-
 func _post_process(scene: Node) -> void:
 	var queue : Array
 	queue.push_back(scene)
@@ -329,7 +314,7 @@ func _post_process(scene: Node) -> void:
 		var front = queue.front()
 		var node = front
 		if node is Skeleton3D:
-			correct_bone_directions(scene, node)
+			fix_skeleton(scene, node)
 			_refresh_skeleton(node)
 		var child_count : int = node.get_child_count()
 		for i in child_count:
