@@ -2,7 +2,7 @@
 extends EditorPlugin
 
 var import_plugin : EditorScenePostImportPlugin = null
-var correct_bone_dir_script = load("res://addons/correct_bone_direction/correct_bone_dir.gd")
+var correct_bone_dir_script = load("res://addons/force_bone_forward/correct_bone_dir.gd")
 
 func _enter_tree():
 	import_plugin = correct_bone_dir_script.new()
