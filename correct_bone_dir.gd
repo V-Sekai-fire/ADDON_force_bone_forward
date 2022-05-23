@@ -28,6 +28,7 @@
 @tool
 extends EditorScenePostImportPlugin
 
+const NO_BONE = -1
 const VECTOR_DIRECTION = Vector3.UP
 
 class RestBone extends RefCounted:
@@ -35,7 +36,7 @@ class RestBone extends RefCounted:
 	var rest_local_after: Transform3D = Transform3D()
 	var rest_delta: Quaternion = Quaternion()
 	var children_centroid_direction: Vector3 = Vector3()
-	var parent_index: int = -1
+	var parent_index: int = NO_BONE
 	var children: Array = []
 	var override_direction: bool = true
 
@@ -98,7 +99,7 @@ static func _fortune_with_chains(
 
 			var chain = chain_hash_table.get(parent_bone, null)
 			if typeof(chain) == TYPE_PACKED_INT32_ARRAY:
-				var index: int = -1
+				var index: int = NO_BONE
 				for findind in range(len(chain)):
 					if chain[findind] == parent_bone:
 						index = findind
@@ -163,13 +164,13 @@ static func _fix_meshes(p_bind_fix_array: Array, p_mesh_instances: Array) -> voi
 		var skeleton: Skeleton3D = node
 		for bind_i in range(0, skin.get_bind_count()):
 			var bone_index:int  = skin.get_bind_bone(bind_i)
-			if (bone_index == -1):
+			if (bone_index == NO_BONE):
 				var bind_name: String = skin.get_bind_name(bind_i)
 				if bind_name.is_empty():
 					continue
 				bone_index = skeleton.find_bone(bind_name)
 
-			if (bone_index == -1):
+			if (bone_index == NO_BONE):
 				continue
 			skin.set_bind_pose(bind_i, p_bind_fix_array[bone_index] * skin.get_bind_pose(bind_i))
 
@@ -206,9 +207,6 @@ static func find_nodes_in_group(p_group: String, p_node: Node) -> Array:
 	return valid_nodes
 
 
-const NO_BONE = -1
-
-
 static func get_full_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) -> PackedInt32Array:
 	var bone_chain: PackedInt32Array = get_bone_chain(p_skeleton, p_first, p_last)
 	bone_chain.push_back(p_last)
@@ -218,7 +216,7 @@ static func get_full_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: in
 static func get_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) -> PackedInt32Array:
 	var bone_chain: Array = []
 
-	if p_first != -1 and p_last != -1:
+	if p_first != NO_BONE and p_last != NO_BONE:
 		var current_bone_index: int = p_last
 
 		while 1:
@@ -226,7 +224,7 @@ static func get_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) ->
 			bone_chain.push_front(current_bone_index)
 			if current_bone_index == p_first:
 				break
-			elif current_bone_index == -1:
+			elif current_bone_index == NO_BONE:
 					return PackedInt32Array()
 
 	return PackedInt32Array(bone_chain)
@@ -234,7 +232,7 @@ static func get_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) ->
 
 static func is_bone_parent_of(p_skeleton: Skeleton3D, p_parent_id: int, p_child_id: int) -> bool:
 	var p: int = p_skeleton.get_bone_parent(p_child_id)
-	while (p != -1):
+	while (p != NO_BONE):
 		if (p == p_parent_id):
 			return true
 		p = p_skeleton.get_bone_parent(p)
@@ -267,7 +265,7 @@ static func fast_get_bone_global_pose(skel: Skeleton3D, bone_idx: int) -> Transf
 	if transform == Transform3D.IDENTITY: # another stupid api.
 		transform = skel.get_bone_pose(bone_idx)
 	var par_bone: int = skel.get_bone_parent(bone_idx)
-	if par_bone == -1:
+	if par_bone == NO_BONE:
 		return transform
 	return fast_get_bone_global_pose(skel, par_bone) * transform
 
