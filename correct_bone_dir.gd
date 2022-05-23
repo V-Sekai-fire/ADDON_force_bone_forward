@@ -200,22 +200,6 @@ static func get_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) ->
 	return PackedInt32Array(bone_chain)
 
 
-static func is_bone_parent_of(p_skeleton: Skeleton3D, p_parent_id: int, p_child_id: int) -> bool:
-	var p: int = p_skeleton.get_bone_parent(p_child_id)
-	while (p != NO_BONE):
-		if (p == p_parent_id):
-			return true
-		p = p_skeleton.get_bone_parent(p)
-
-	return false
-
-static func is_bone_parent_of_or_self(p_skeleton: Skeleton3D, p_parent_id: int, p_child_id: int) -> bool:
-	if p_parent_id == p_child_id:
-		return true
-
-	return is_bone_parent_of(p_skeleton, p_parent_id, p_child_id)
-
-
 static func change_bone_rest(p_skeleton: Skeleton3D, bone_idx: int, bone_rest: Transform3D):
 	var old_scale: Vector3 = p_skeleton.get_bone_pose_scale(bone_idx)
 	var new_rotation: Quaternion = Quaternion(bone_rest.basis.orthonormalized())
