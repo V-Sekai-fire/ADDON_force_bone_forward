@@ -40,14 +40,6 @@ class RestBone extends RefCounted:
 	var children: Array = []
 	var override_direction: bool = true
 
-static func _get_perpendicular_vector(p_v: Vector3) -> Vector3:
-	var perpendicular: Vector3 = Vector3()
-	if !is_zero_approx(p_v[0]) and !is_zero_approx(p_v[1]):
-		perpendicular = Vector3(0, 0, 1).cross(p_v).normalized()
-	else:
-		perpendicular = Vector3(1, 0, 0)
-
-	return perpendicular
 
 static func _align_vectors(a: Vector3, b: Vector3) -> Quaternion:
 	a = a.normalized()
@@ -60,7 +52,11 @@ static func _align_vectors(a: Vector3, b: Vector3) -> Quaternion:
 		var perpendicular: Vector3 = a.cross(b).normalized()
 		var angle_diff: float = a.angle_to(b)
 		if is_zero_approx(perpendicular.length_squared()):
-			perpendicular = _get_perpendicular_vector(a)
+			perpendicular = Vector3()
+			if !is_zero_approx(a[0]) and !is_zero_approx(a[1]):
+				perpendicular = Vector3(0, 0, 1).cross(a).normalized()
+			else:
+				perpendicular = Vector3(1, 0, 0)
 		return Quaternion(perpendicular, angle_diff)
 	else:
 		return Quaternion()
