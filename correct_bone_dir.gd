@@ -158,37 +158,6 @@ static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Sk
 	return p_valid_mesh_instances
 
 
-static func change_bone_rest(p_skeleton: Skeleton3D, bone_idx: int, bone_rest: Transform3D):
-	var old_scale: Vector3 = p_skeleton.get_bone_pose_scale(bone_idx)
-	var new_rotation: Quaternion = Quaternion(bone_rest.basis.orthonormalized())
-	p_skeleton.set_bone_pose_position(bone_idx, bone_rest.origin)
-	p_skeleton.set_bone_pose_scale(bone_idx, old_scale)
-	p_skeleton.set_bone_pose_rotation(bone_idx, new_rotation)
-	p_skeleton.set_bone_rest(bone_idx, Transform3D(
-			Basis(new_rotation) * Basis(Vector3(1,0,0) * old_scale.x, Vector3(0,1,0) * old_scale.y, Vector3(0,0,1) * old_scale.z),
-			bone_rest.origin))
-
-
-static func fast_get_bone_global_pose(skel: Skeleton3D, bone_idx: int) -> Transform3D:
-	var xform2: Transform3D = skel.get_bone_global_pose_override(bone_idx)
-	if xform2 != Transform3D.IDENTITY: # this api is stupid.
-		return xform2
-	var transform: Transform3D = skel.get_bone_local_pose_override(bone_idx)
-	if transform == Transform3D.IDENTITY: # another stupid api.
-		transform = skel.get_bone_pose(bone_idx)
-	var par_bone: int = skel.get_bone_parent(bone_idx)
-	if par_bone == NO_BONE:
-		return transform
-	return fast_get_bone_global_pose(skel, par_bone) * transform
-
-
-static func fast_get_bone_local_pose(skel: Skeleton3D, bone_idx: int) -> Transform3D:
-	var transform: Transform3D = skel.get_bone_local_pose_override(bone_idx)
-	if transform == Transform3D.IDENTITY: # another stupid api.
-		transform = skel.get_bone_pose(bone_idx)
-	return transform
-
-
 static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: Array) -> Dictionary:
 	var rest_bones: Dictionary = _fortune_with_chains(p_skeleton, {}.duplicate(), [], false, [], p_base_pose)
 
@@ -213,11 +182,17 @@ func _post_process(scene: Node) -> void:
 			var base_pose: Array = []
 			for i in range(0, node.get_bone_count()):
 				base_pose.append(node.get_bone_rest(i))
-
 			var offsets: Dictionary = get_fortune_with_chain_offsets(node, base_pose)
 			for i in range(0, offsets["base_pose_offsets"].size()):
 				var final_pose: Transform3D = node.get_bone_rest(i) * offsets["base_pose_offsets"][i]
-				change_bone_rest(node, i, final_pose)
+				var old_scale: Vector3 = node.get_bone_pose_scale(i)
+				var new_rotation: Quaternion = Quaternion(final_pose.basis.orthonormalized())
+				node.set_bone_pose_position(i, final_pose.origin)
+				node.set_bone_pose_scale(i, old_scale)
+				node.set_bone_pose_rotation(i, new_rotation)
+				node.set_bone_rest(i, Transform3D(
+						Basis(new_rotation) * Basis(Vector3(1,0,0) * old_scale.x, Vector3(0,1,0) * old_scale.y, Vector3(0,0,1) * old_scale.z),
+						final_pose.origin))
 			# Correct the bind poses
 			var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(scene, node, [])
 			print("bone_direction: _fix_meshes")
