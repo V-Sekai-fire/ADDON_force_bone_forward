@@ -217,45 +217,8 @@ static func find_nodes_in_group(p_group: String, p_node: Node) -> Array:
 	return valid_nodes
 
 
-static func set_relative_global_transform(p_root: Node3D, p_node3d: Node3D, p_gt: Transform3D) -> void:
-	if p_node3d.get_parent() == p_root:
-		p_node3d.set_transform(p_gt)
-	else:
-		p_node3d.set_transform(get_relative_global_transform(\
-		p_root, p_node3d.get_parent()).affine_inverse() * p_gt)
-
-
-static func get_relative_global_transform(p_root: Node3D, p_node3d: Node3D) -> Transform3D:
-	var parent: Node3D = p_node3d.get_parent()
-	if parent and parent != p_root:
-		return get_relative_global_transform(p_root, parent) * p_node3d.transform
-	else:
-		return p_node3d.transform
-
-
 const NO_BONE = -1
 
-static func get_bone_global_transform(p_id: int, p_skeleton: Skeleton3D, p_local_transform_array: Array) -> Transform3D:
-	var return_transform: Transform3D = Transform3D()
-	var parent_id: int = p_skeleton.get_bone_parent(p_id)
-	if parent_id != -1:
-		return_transform = get_bone_global_transform(parent_id, p_skeleton, p_local_transform_array)
-
-	for transform in p_local_transform_array:
-		if p_id >= len(transform):
-			var j: JSON = JSON.new()
-			push_error("Missing bone global transform: Transform " + j.stringify(transform) + " has length " + str(len(transform)) + " id " + str(p_id))
-			return return_transform
-		return_transform *= transform[p_id]
-
-	return return_transform
-
-static func get_bone_global_rest_transform(p_id: int, p_skeleton: Skeleton3D) -> Transform3D:
-	var rest_local_transforms: Array = []
-	for i in range(0, p_skeleton.get_bone_count()):
-		rest_local_transforms.push_back(p_skeleton.get_bone_rest(i))
-
-	return get_bone_global_transform(p_id, p_skeleton, [rest_local_transforms])
 
 static func get_full_bone_chain(p_skeleton: Skeleton3D, p_first: int, p_last: int) -> PackedInt32Array:
 	var bone_chain: PackedInt32Array = get_bone_chain(p_skeleton, p_first, p_last)
@@ -295,6 +258,7 @@ static func is_bone_parent_of_or_self(p_skeleton: Skeleton3D, p_parent_id: int, 
 		
 	return is_bone_parent_of(p_skeleton, p_parent_id, p_child_id)
 
+
 static func change_bone_rest(p_skeleton: Skeleton3D, bone_idx: int, bone_rest: Transform3D):
 	var old_scale: Vector3 = p_skeleton.get_bone_pose_scale(bone_idx)
 	var new_rotation: Quaternion = Quaternion(bone_rest.basis.orthonormalized())
@@ -318,6 +282,7 @@ static func fast_get_bone_global_pose(skel: Skeleton3D, bone_idx: int) -> Transf
 		return transform
 	return fast_get_bone_global_pose(skel, par_bone) * transform
 
+
 static func fast_get_bone_local_pose(skel: Skeleton3D, bone_idx: int) -> Transform3D:
 	var transform: Transform3D = skel.get_bone_local_pose_override(bone_idx)
 	if transform == Transform3D.IDENTITY: # another stupid api.
@@ -326,8 +291,6 @@ static func fast_get_bone_local_pose(skel: Skeleton3D, bone_idx: int) -> Transfo
 
 
 static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: Array) -> Dictionary:
-	# Get the 5 bone chains necessary for a valid humanoid rig
-	var humanoid_chains: Array 
 	var rest_bones: Dictionary = _fortune_with_chains(p_skeleton, {}.duplicate(), [], false, [], p_base_pose)
 	
 	var offsets: Dictionary = {"base_pose_offsets":[], "bind_pose_offsets":[]}
