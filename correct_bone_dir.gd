@@ -170,9 +170,9 @@ static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: 
 	return offsets
 
 
-func _post_process(scene: Node) -> void:
+func _post_process(p_root: Node) -> void:
 	var queue : Array
-	queue.push_back(scene)
+	queue.push_back(p_root)
 	var string_builder : Array
 	while not queue.is_empty():
 		var front = queue.front()
@@ -194,7 +194,7 @@ func _post_process(scene: Node) -> void:
 						Basis(new_rotation) * Basis(Vector3(1,0,0) * old_scale.x, Vector3(0,1,0) * old_scale.y, Vector3(0,0,1) * old_scale.z),
 						final_pose.origin))
 			# Correct the bind poses
-			var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(scene, node, [])
+			var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(p_root, node, [])
 			print("bone_direction: _fix_meshes")
 			for mi in mesh_instances:
 				var skin: Skin = mi.get_skin();
@@ -225,5 +225,5 @@ func _post_process(scene: Node) -> void:
 		for i in child_count:
 			queue.push_back(node.get_child(i))
 		queue.pop_front()
-	return scene
+	return p_root
 
