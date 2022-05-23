@@ -37,7 +37,7 @@ class RestBone extends RefCounted:
 	var rest_delta: Quaternion
 	var children_centroid_direction: Vector3
 	var parent_index: int = NO_BONE
-	var children: Array = []
+	var children: Array[int] = []
 	var override_direction: bool = true
 
 
@@ -64,10 +64,10 @@ static func _align_vectors(a: Vector3, b: Vector3) -> Quaternion:
 static func _fortune_with_chains(
 	p_skeleton: Skeleton3D,
 	r_rest_bones: Dictionary,
-	p_fixed_chains: Array,
+	p_fixed_chains: Array[PackedInt32Array],
 	p_ignore_unchained_bones: bool,
-	p_ignore_chain_tips: Array,
-	p_base_pose: Array) -> Dictionary:
+	p_ignore_chain_tips: Array[PackedInt32Array],
+	p_base_pose: Array[Transform3D]) -> Dictionary:
 	var bone_count: int = p_skeleton.get_bone_count()
 
 	# First iterate through all the bones and create a RestBone for it with an empty centroid
@@ -146,7 +146,7 @@ static func _fortune_with_chains(
 	return r_rest_bones
 
 
-static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Skeleton3D, p_valid_mesh_instances: Array) -> Array:
+static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Skeleton3D, p_valid_mesh_instances: Array[MeshInstance3D]) -> Array:
 	if p_skeleton and p_node is MeshInstance3D:
 		var skeleton: Node = p_node.get_node_or_null(p_node.skeleton)
 		if skeleton == p_skeleton:
@@ -158,7 +158,7 @@ static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Sk
 	return p_valid_mesh_instances
 
 
-static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: Array) -> Dictionary:
+static func get_fortune_with_chain_offsets(p_skeleton: Skeleton3D, p_base_pose: Array[Transform3D]) -> Dictionary:
 	var rest_bones: Dictionary = _fortune_with_chains(p_skeleton, {}.duplicate(), [], false, [], p_base_pose)
 
 	var offsets: Dictionary = {"base_pose_offsets":[], "bind_pose_offsets":[]}
