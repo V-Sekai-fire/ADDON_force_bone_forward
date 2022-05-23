@@ -149,31 +149,6 @@ static func _fortune_with_chains(
 
 	return r_rest_bones
 
-static func _fix_meshes(p_bind_fix_array: Array, p_mesh_instances: Array) -> void:
-	print("bone_direction: _fix_meshes")
-
-	for mi in p_mesh_instances:
-		var skin: Skin = mi.get_skin();
-		if skin == null:
-			continue
-
-		skin = skin.duplicate()
-		mi.set_skin(skin)
-		var skeleton_path: NodePath = mi.get_skeleton_path()
-		var node: Node = mi.get_node_or_null(skeleton_path)
-		var skeleton: Skeleton3D = node
-		for bind_i in range(0, skin.get_bind_count()):
-			var bone_index:int  = skin.get_bind_bone(bind_i)
-			if (bone_index == NO_BONE):
-				var bind_name: String = skin.get_bind_name(bind_i)
-				if bind_name.is_empty():
-					continue
-				bone_index = skeleton.find_bone(bind_name)
-
-			if (bone_index == NO_BONE):
-				continue
-			skin.set_bind_pose(bind_i, p_bind_fix_array[bone_index] * skin.get_bind_pose(bind_i))
-
 
 static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Skeleton3D, p_valid_mesh_instances: Array) -> Array:
 	if p_skeleton and p_node is MeshInstance3D:
@@ -298,7 +273,6 @@ func _post_process(scene: Node) -> void:
 		var node = front
 		if node is Skeleton3D:
 			print("bone_direction: fix_skeleton")
-
 			var base_pose: Array = []
 			for i in range(0, node.get_bone_count()):
 				base_pose.append(node.get_bone_rest(i))
@@ -309,7 +283,28 @@ func _post_process(scene: Node) -> void:
 				change_bone_rest(node, i, final_pose)
 			# Correct the bind poses
 			var mesh_instances: Array = find_mesh_instances_for_avatar_skeleton(scene, node, [])
-			_fix_meshes(offsets["bind_pose_offsets"], mesh_instances)
+			print("bone_direction: _fix_meshes")
+			for mi in mesh_instances:
+				var skin: Skin = mi.get_skin();
+				if skin == null:
+					continue
+
+				skin = skin.duplicate()
+				mi.set_skin(skin)
+				var skeleton_path: NodePath = mi.get_skeleton_path()
+				var skeleton_node: Node = mi.get_node_or_null(skeleton_path)
+				var skeleton: Skeleton3D = skeleton_node
+				for bind_i in range(0, skin.get_bind_count()):
+					var bone_index:int  = skin.get_bind_bone(bind_i)
+					if (bone_index == NO_BONE):
+						var bind_name: String = skin.get_bind_name(bind_i)
+						if bind_name.is_empty():
+							continue
+						bone_index = skeleton.find_bone(bind_name)
+
+					if (bone_index == NO_BONE):
+						continue
+					skin.set_bind_pose(bind_i, offsets["bind_pose_offsets"][bone_index] * skin.get_bind_pose(bind_i))
 			_refresh_skeleton(node)
 		var child_count : int = node.get_child_count()
 		for i in child_count:
