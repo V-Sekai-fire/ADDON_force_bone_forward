@@ -354,7 +354,7 @@ static func fix_skeleton(p_root: Node, p_skeleton: Skeleton3D) -> void:
 	_fix_meshes(offsets["bind_pose_offsets"], mesh_instances)
 
 
-func correct_bone_directions(p_root: Node, p_skeleton_node: Skeleton3D) -> void:
+static func correct_bone_directions(p_root: Node, p_skeleton_node: Skeleton3D) -> void:
 	fix_skeleton(p_root, p_skeleton_node)
 
 
