@@ -162,21 +162,6 @@ static func find_mesh_instances_for_avatar_skeleton(p_node: Node, p_skeleton: Sk
 	return p_valid_mesh_instances
 
 
-static func find_nodes_in_group(p_group: String, p_node: Node) -> Array:
-	var valid_nodes: Array = Array()
-
-	for group in p_node.get_groups():
-		if p_group == group:
-			valid_nodes.push_back(p_node)
-
-	for child in p_node.get_children():
-		var valid_child_nodes: Array = find_nodes_in_group(p_group, child)
-		for valid_child_node in valid_child_nodes:
-			valid_nodes.push_back(valid_child_node)
-
-	return valid_nodes
-
-
 static func change_bone_rest(p_skeleton: Skeleton3D, bone_idx: int, bone_rest: Transform3D):
 	var old_scale: Vector3 = p_skeleton.get_bone_pose_scale(bone_idx)
 	var new_rotation: Quaternion = Quaternion(bone_rest.basis.orthonormalized())
